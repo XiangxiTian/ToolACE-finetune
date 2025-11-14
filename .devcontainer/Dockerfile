@@ -22,15 +22,13 @@ RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     python3.10-venv \
-    uv \
     && rm -rf /var/lib/apt/lists/*
 
 # Set python3 as default python
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install uv (fast Python package installer)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # Copy requirements and install main dependencies globally using uv
 COPY requirements.txt /tmp/requirements.txt
