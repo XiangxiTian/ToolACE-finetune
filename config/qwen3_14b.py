@@ -1,7 +1,5 @@
 from config.base_config import Config, WandbConfig
 
-# TODO: add custom callback to save only top-k checkpoints
-# TODO: about regularization
 
 def get_config() -> Config:
 	"""Configuration for Qwen3-14B fine-tuning."""

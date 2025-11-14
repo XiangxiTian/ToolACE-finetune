@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     python3.10-venv \
+    uv \
     && rm -rf /var/lib/apt/lists/*
 
 # Set python3 as default python
