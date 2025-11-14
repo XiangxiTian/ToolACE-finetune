@@ -1,0 +1,4 @@
+# Quantization-specific dependencies in isolated environment
+# This avoids conflicts with main training environment
+
+llmcompressor>=0.7.0

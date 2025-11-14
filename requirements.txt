@@ -1,0 +1,12 @@
+torch>=2.1.0
+transformers==4.57.1
+datasets==4.3.0
+accelerate==1.11.0
+peft==0.17.1
+trl==0.10.1
+sentencepiece==0.2.0
+safetensors==0.4.5
+vllm==0.11.0
+python-dotenv>=1.0.0
+bfcl_eval==2025.11.10
+wandb>=0.15.0

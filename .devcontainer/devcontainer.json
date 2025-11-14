@@ -1,0 +1,84 @@
+{
+  "name": "LLM Training Dev Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {}
+  },
+  "shutdownAction": "stopContainer",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-toolsai.jupyter",
+        "njpwerner.autodocstring",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.formatting.provider": "black",
+        "python.analysis.typeCheckingMode": "basic",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        "files.watcherExclude": {
+          "**/outputs/**": true,
+          "**/wandb/**": true,
+          "**/.git/**": true,
+          "**/bfcl_dir/**": true
+        }
+      }
+    }
+  },
+  // Port forwarding for vLLM server, Jupyter, etc.
+  "forwardPorts": [
+    8000,
+    8888
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "vLLM Server",
+      "onAutoForward": "notify"
+    },
+    "8888": {
+      "label": "Jupyter",
+      "onAutoForward": "ignore"
+    }
+  },
+  // Container runtime arguments - explicit GPU and resource configuration
+  "runArgs": [
+    // Enable all GPUs
+    "--gpus=all",
+    // Use host IPC namespace (required for some ML frameworks)
+    "--ipc=host",
+    // Increase shared memory for DataLoader workers (matches docker-compose)
+    "--shm-size=16gb",
+    // Use host network (required for vLLM server)
+    "--network=host"
+  ],
+  // Post-create command to verify setup
+  "postCreateCommand": "python3 --version && nvcc --version && nvidia-smi",
+  // Convenient features
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true
+    }
+  },
+  // Environment variables - explicit configuration matching Dockerfile and docker-compose
+  "containerEnv": {
+    "PYTHONUNBUFFERED": "1",
+    "DEBIAN_FRONTEND": "noninteractive",
+    "CUDA_HOME": "/usr/local/cuda",
+    "PATH": "/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "LD_LIBRARY_PATH": "/usr/local/cuda/lib64",
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "CUDA_VISIBLE_DEVICES": "0"
+  }
+}

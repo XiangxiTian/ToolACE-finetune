@@ -9,6 +9,8 @@
 .vscode/
 .cache/
 .config/
+.docker/
+.ssh/
 
 .DS_Store
 
