@@ -1,0 +1,16 @@
+.bash_history
+.bash_logout
+.bash_profile
+.bashrc
+.profile
+
+.cursor-server/
+.cursor/
+.vscode/
+.cache/
+.config/
+
+.DS_Store
+
+__pycache__/
+
