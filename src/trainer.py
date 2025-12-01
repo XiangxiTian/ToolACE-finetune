@@ -86,6 +86,9 @@ def build_trainer(
 
     model.config.use_cache = False
 
+    # Note: assistant_only_loss masking is handled during data preparation in train.py
+    # by setting labels to -100 for non-assistant tokens. DataCollatorForLanguageModeling
+    # will use these labels as-is, and the loss will automatically ignore -100 tokens.
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
         mlm=False,
