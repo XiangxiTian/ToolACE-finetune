@@ -1,12 +1,34 @@
+import torch
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
+    BitsAndBytesConfig,
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
 
+from config.base_config import Config
 
-def build_model_and_tokenizer(model_name: str) -> tuple[AutoModelForCausalLM, PreTrainedTokenizer | PreTrainedTokenizerFast]:
+
+def _build_quantization_config(config: Config) -> BitsAndBytesConfig | None:
+    """
+    Build BitsAndBytes quantization config when 4-bit loading is enabled.
+    """
+
+    if not config.load_in_4bit:
+        return None
+
+    return BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=getattr(torch, config.bnb_4bit_compute_dtype),
+        bnb_4bit_quant_type=config.bnb_4bit_quant_type,
+        bnb_4bit_use_double_quant=config.bnb_4bit_use_double_quant,
+    )
+
+
+def build_model_and_tokenizer(
+    config: Config,
+) -> tuple[AutoModelForCausalLM, PreTrainedTokenizer | PreTrainedTokenizerFast]:
     """
     Load model and tokenizer, and patch the tokenizer for assistant_only_loss.
     
@@ -18,16 +40,20 @@ def build_model_and_tokenizer(model_name: str) -> tuple[AutoModelForCausalLM, Pr
         for use with SFTTrainer's assistant_only_loss=True
     """
     
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(config.model_name)
     
     # Configure pad token if not set (common for Qwen models)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
     
+    quantization_config = _build_quantization_config(config)
+
     model = AutoModelForCausalLM.from_pretrained(
-        model_name,
+        config.model_name,
         pad_token_id=tokenizer.pad_token_id,
+        quantization_config=quantization_config,
+        device_map="auto" if quantization_config else None,
     )
     
     # Ensure model config is aligned with tokenizer

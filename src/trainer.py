@@ -1,7 +1,14 @@
+import torch
 from datasets import Dataset
-from peft import LoraConfig
-from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
-from trl import DataCollatorForCompletionOnlyLM, SFTConfig, SFTTrainer
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from transformers import (
+    DataCollatorForLanguageModeling,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+    PreTrainedTokenizerFast,
+    Trainer,
+    TrainingArguments,
+)
 
 from config.base_config import Config
 
@@ -14,7 +21,7 @@ def build_trainer(
     eval_dataset: "Dataset",
     report_to: list[str],
     run_name: str | None,
-) -> SFTTrainer:
+) -> Trainer:
     """
     Build and configure the SFTTrainer with LoRA.
     
@@ -42,21 +49,23 @@ def build_trainer(
         task_type=config.lora_task_type,
     )
     
-    # Configure SFT training
-    sft_config = SFTConfig(
-        # SFT-specific parameters
-        dataset_text_field="text",
-        max_seq_length=config.max_seq_len,
-        
-        # Training parameters
+    if config.load_in_4bit:
+        model = prepare_model_for_kbit_training(model)
+
+    if config.bf16 and not config.load_in_4bit:
+        model = model.to(dtype=torch.bfloat16)
+
+    model = get_peft_model(model, lora_config)
+
+    training_args = TrainingArguments(
         output_dir=config.output_dir,
         per_device_train_batch_size=config.per_device_train_batch_size,
         per_device_eval_batch_size=config.per_device_eval_batch_size,
         gradient_accumulation_steps=config.gradient_accumulation_steps,
-        gradient_checkpointing=True, 
+        gradient_checkpointing=config.gradient_checkpointing,
         num_train_epochs=config.num_train_epochs,
         max_steps=config.max_steps,
-        eval_strategy=config.eval_strategy,
+        evaluation_strategy=config.eval_strategy,
         eval_steps=config.eval_steps,
         save_strategy=config.save_strategy,
         save_steps=config.save_steps,
@@ -66,6 +75,8 @@ def build_trainer(
         bf16=config.bf16,
         logging_steps=config.logging_steps,
         warmup_ratio=config.warmup_ratio,
+        dataloader_num_workers=config.dataloader_num_workers,
+        group_by_length=config.group_by_length,
         seed=config.seed,
         data_seed=config.seed,
         logging_dir=config.logging_dir,
@@ -73,22 +84,20 @@ def build_trainer(
         run_name=run_name,
     )
 
-    # data collator for completion-only loss
-    data_collator = DataCollatorForCompletionOnlyLM(
+    model.config.use_cache = False
+
+    data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
-        response_template="<|im_start|>assistant",
-        instruction_template="<|im_start|>user",
         mlm=False,
     )
-    
-    trainer = SFTTrainer(
+
+    trainer = Trainer(
         model=model,
-        args=sft_config,
+        args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        peft_config=lora_config,
     )
     
     return trainer

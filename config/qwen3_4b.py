@@ -32,11 +32,14 @@ def get_config() -> Config:
 		num_train_epochs=1.0,
 		max_steps=-1, 	
 		
-		per_device_train_batch_size=4,
-		per_device_eval_batch_size=2,
-		learning_rate=1e-5,
-		max_seq_len=4096,
-		gradient_accumulation_steps=2,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=2,
+        learning_rate=1e-5,
+        max_seq_len=4096,
+        gradient_accumulation_steps=2,
+        gradient_checkpointing=False,
+        group_by_length=True,
+        dataloader_num_workers=4,
 		
         # Logging and evaluation
         logging_steps=10,
@@ -48,8 +51,14 @@ def get_config() -> Config:
         save_total_limit=2,
        
 		
-		# Precision
-		bf16=True,
+        # Precision
+        bf16=True,
+
+                # Quantization
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype="bfloat16",
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
 		
 		# Other training settings
 		warmup_ratio=0.05,
