@@ -42,8 +42,14 @@ def get_config() -> Config:
         save_steps=100,
         save_total_limit=2,
 		
-		# Precision
-		bf16=True,
+        # Precision
+        bf16=True,
+
+                # Quantization
+                load_in_4bit=False,
+                bnb_4bit_compute_dtype="bfloat16",
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
 		
 		# Other training settings
 		warmup_ratio=0.05,

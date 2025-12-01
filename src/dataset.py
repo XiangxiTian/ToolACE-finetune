@@ -4,41 +4,40 @@ from datasets import Dataset, DatasetDict, load_dataset
 
 
 def format_conversation_to_messages(
-		system: Optional[str],
-		conversations: Optional[List[Dict[str, Any]]],
+    system: Optional[str],
+    conversations: Optional[List[Dict[str, Any]]],
 ) -> Optional[Dict[str, Any]]:
+    """Convert a ToolACE row into the SFT-friendly {"messages": [...]} shape."""
 
-	at_least_one_assistant_message = False
+    if not conversations:
+        return {"messages": None}
 
-	messages: List[Dict[str, str]] = []
-	messages.append({"role": "system", "content": system.strip()})
+    messages: List[Dict[str, str]] = []
+    if system and system.strip():
+        messages.append({"role": "system", "content": system.strip()})
 
-	for turn in conversations:
-		try:
-			if 'from' in turn:
-				role = turn["from"]
-			else:
-				role = turn["role"]
-			role = role.strip().lower()
-			if role == "assistant":
-				at_least_one_assistant_message = True
+    at_least_one_assistant_message = False
 
-			if 'value' in turn:
-				content = turn["value"]
-			else:
-				content = turn["content"]
-			content = content.strip()
-   
-			messages.append({"role": role, "content": content})
-		except Exception as e:
-			print(turn)
-			print(f"Error formatting conversation: {e}")
-			raise e
+    for turn in conversations:
+        try:
+            role = (turn.get("from") or turn.get("role") or "").strip().lower()
+            if role == "assistant":
+                at_least_one_assistant_message = True
 
-	if not at_least_one_assistant_message:
-		return {"messages": None}
+            content = (turn.get("value") or turn.get("content") or "").strip()
+            if not role or not content:
+                continue
 
-	return {"messages": messages}
+            messages.append({"role": role, "content": content})
+        except Exception as e:
+            print(turn)
+            print(f"Error formatting conversation: {e}")
+            raise e
+
+    if not at_least_one_assistant_message or not messages:
+        return {"messages": None}
+
+    return {"messages": messages}
 
 
 def get_toolace_datasets(
