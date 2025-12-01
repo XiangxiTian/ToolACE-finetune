@@ -10,3 +10,4 @@ vllm==0.11.0
 python-dotenv>=1.0.0
 bfcl_eval==2025.11.10
 wandb>=0.15.0
+sentence-transformers>=2.2.0

@@ -1,0 +1,163 @@
+[
+  {
+    "name": "search_web",
+    "description": "Search the web for information on a given topic",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The search query"
+        },
+        "max_results": {
+          "type": "integer",
+          "description": "Maximum number of results to return",
+          "default": 10
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "get_weather",
+    "description": "Get current weather information for a specific location",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "City name or location"
+        },
+        "units": {
+          "type": "string",
+          "description": "Temperature units (celsius or fahrenheit)",
+          "enum": ["celsius", "fahrenheit"],
+          "default": "celsius"
+        }
+      },
+      "required": ["location"]
+    }
+  },
+  {
+    "name": "calculate",
+    "description": "Perform mathematical calculations",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string",
+          "description": "Mathematical expression to evaluate"
+        }
+      },
+      "required": ["expression"]
+    }
+  },
+  {
+    "name": "send_email",
+    "description": "Send an email to a recipient",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "type": "string",
+          "description": "Recipient email address"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Email subject"
+        },
+        "body": {
+          "type": "string",
+          "description": "Email body content"
+        }
+      },
+      "required": ["to", "subject", "body"]
+    }
+  },
+  {
+    "name": "translate_text",
+    "description": "Translate text from one language to another",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text to translate"
+        },
+        "source_language": {
+          "type": "string",
+          "description": "Source language code (e.g., 'en', 'es', 'fr')"
+        },
+        "target_language": {
+          "type": "string",
+          "description": "Target language code (e.g., 'en', 'es', 'fr')"
+        }
+      },
+      "required": ["text", "target_language"]
+    }
+  },
+  {
+    "name": "get_stock_price",
+    "description": "Get the current stock price for a given ticker symbol",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "ticker": {
+          "type": "string",
+          "description": "Stock ticker symbol (e.g., 'AAPL', 'GOOGL')"
+        }
+      },
+      "required": ["ticker"]
+    }
+  },
+  {
+    "name": "create_calendar_event",
+    "description": "Create a calendar event with title, date, and time",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Event title"
+        },
+        "date": {
+          "type": "string",
+          "description": "Event date in YYYY-MM-DD format"
+        },
+        "time": {
+          "type": "string",
+          "description": "Event time in HH:MM format"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Event duration in minutes",
+          "default": 60
+        }
+      },
+      "required": ["title", "date", "time"]
+    }
+  },
+  {
+    "name": "search_database",
+    "description": "Search a database for records matching given criteria",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "type": "string",
+          "description": "Database table name"
+        },
+        "filters": {
+          "type": "object",
+          "description": "Filter criteria as key-value pairs"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of results",
+          "default": 100
+        }
+      },
+      "required": ["table"]
+    }
+  }
+]
