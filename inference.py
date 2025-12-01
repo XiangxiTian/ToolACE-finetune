@@ -68,12 +68,13 @@ class ToolRetrievalModule:
         self.similarity_model = similarity_model.to(device)
         self.device = device
 
-    def generate_simulated_query(self, tool: Dict[str, Any]) -> str:
+    def generate_simulated_query(self, tool: Dict[str, Any], real_query: str) -> str:
         """
-        Generate a simulated query for a tool using the LLM.
+        Generate a simulated query for a tool using the LLM, using the real query as an example.
 
         Args:
             tool: Tool dictionary with name, description, parameters, etc.
+            real_query: The real user query to use as an example for generating similar queries
 
         Returns:
             Simulated query string that would use this tool
@@ -83,17 +84,19 @@ class ToolRetrievalModule:
         tool_description = tool.get("description", "")
         tool_parameters = tool.get("parameters", {})
 
-        # Create prompt for generating simulated query
-        prompt = f"""Given the following tool definition, generate a realistic user query that would require using this tool.
+        # Create prompt for generating simulated query with real query as example
+        prompt = f"""Given the following tool definition and a real user query example, generate a realistic user query that would require using this tool. The generated query should be similar in style and intent to the example query.
+
+Real user query example: {real_query}
 
 Tool Name: {tool_name}
 Tool Description: {tool_description}
 Tool Parameters: {json.dumps(tool_parameters, indent=2)}
 
-Generate a concise, natural user query that would lead to using this tool. The query should be similar to what a real user would ask. Only output the query, nothing else."""
+Generate a concise, natural user query that would lead to using this tool. The query should be similar in style, tone, and intent to the example query above. Only output the query, nothing else."""
 
         messages = [
-            {"role": "system", "content": "You are a helpful assistant that generates realistic user queries for tools."},
+            {"role": "system", "content": "You are a helpful assistant that generates realistic user queries for tools, matching the style and intent of example queries."},
             {"role": "user", "content": prompt}
         ]
 
@@ -157,14 +160,16 @@ Generate a concise, natural user query that would lead to using this tool. The q
 
         for tool in tools:
             tool_id = tool.get("name", str(id(tool)))
+            # Include query in cache key since simulated queries are query-specific
+            cache_key = f"{tool_id}_{hash(query)}"
 
             # Check cache first
-            if use_cache and tool_id in self._simulated_queries_cache:
-                simulated_query = self._simulated_queries_cache[tool_id]
+            if use_cache and cache_key in self._simulated_queries_cache:
+                simulated_query = self._simulated_queries_cache[cache_key]
             else:
-                simulated_query = self.generate_simulated_query(tool)
+                simulated_query = self.generate_simulated_query(tool, query)
                 if use_cache:
-                    self._simulated_queries_cache[tool_id] = simulated_query
+                    self._simulated_queries_cache[cache_key] = simulated_query
 
             simulated_queries.append(simulated_query)
             tool_simulated_pairs.append((tool, simulated_query))
